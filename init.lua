@@ -7,14 +7,6 @@ local kickall = {}
 
 kickall.__iskickshutdown = false
 
-if not minetest.setting_getbool("kickall.no_kick_on_shutdown") == true then
-	minetest.register_on_shutdown(function()
-		if not kickall.__iskickshutdown then
-			kickall.kickall(nil, "Shutting down server.", false, true)
-		end
-	end)
-end
-
 function kickall.kickall(playerfrom, reason, reallyall, shutdown)
 	local defaultreason = minetest.setting_get("kickall.def_reason") or "%s kicking all players"
 	local defaultshutdownreason = minetest.setting_get("kickall.def_shutdown_reason") or "%s kicking all players due to shutdown."
@@ -27,7 +19,7 @@ function kickall.kickall(playerfrom, reason, reallyall, shutdown)
 		reason = playerfrom and (shutdown and defaultshutdownreason or defaultreason) or "Server shutting down."
 	end
 	reason = reason:format(playerfrom)
-	for _,player in ipairs(minetest.get_connected_players()) do
+	for _,player in pairs(minetest.get_connected_players()) do
 		local name = player:get_player_name()
 		local privs = minetest.get_player_privs(name)
 		if not privs.nokickall or reallyall  then
@@ -68,3 +60,11 @@ minetest.register_chatcommand("kshutdown", {
 		minetest.request_shutdown()
 	end
 })
+
+if not minetest.setting_getbool("kickall.no_kick_on_shutdown") == true then
+	minetest.register_on_shutdown(function()
+		if not kickall.__iskickshutdown then
+			kickall.kickall(nil, "Shutting down server.", false, true)
+		end
+	end)
+end
